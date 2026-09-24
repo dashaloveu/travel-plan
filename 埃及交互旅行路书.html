@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="埃及交互路书">
-  <title>旅游计划书</title>
+  <meta name="apple-mobile-web-app-title" content="旅游交互系统">
+  <title>旅游交互系统</title>
   
   <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -111,28 +111,54 @@
       color: var(--text-main);
     }
 
-    /* 底图选择下拉菜单样式 */
+    /* 底图选择遮罩层与浮动菜单 */
+    .layer-menu-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .layer-menu-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     .layer-dropdown-wrapper {
       position: relative;
       display: inline-block;
+      flex-shrink: 0;
     }
 
     .layer-menu-popup {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      position: fixed;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.6);
-      padding: 6px;
-      min-width: 210px;
-      z-index: 2000;
-      display: flex;
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+      padding: 8px;
+      min-width: 230px;
+      z-index: 9999;
+      display: none;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
+    }
+
+    .layer-menu-popup.open {
+      display: flex;
+    }
+
+    .layer-menu-header-mobile {
+      display: none;
     }
 
     .layer-option {
@@ -445,6 +471,7 @@
       #map-wrapper {
         height: 50%;
         flex: none;
+        transition: height 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
       }
 
       #panel-wrapper {
@@ -454,6 +481,116 @@
         border-top: 1px solid var(--card-border);
         border-radius: 20px 20px 0 0;
         box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
+        transition: height 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        z-index: 1001;
+      }
+
+      /* 抽屉三段状态 */
+      /* 1. 默认半屏状态 */
+      #app-container.drawer-half #map-wrapper {
+        height: 50%;
+      }
+      #app-container.drawer-half #panel-wrapper {
+        height: 50%;
+      }
+
+      /* 2. 上滑全屏编辑状态 */
+      #app-container.drawer-full #map-wrapper {
+        height: 60px;
+      }
+      #app-container.drawer-full #panel-wrapper {
+        height: calc(100% - 60px);
+        border-radius: 24px 24px 0 0;
+      }
+
+      /* 3. 下滑大地图全景状态 */
+      #app-container.drawer-collapsed #map-wrapper {
+        height: calc(100% - 72px);
+      }
+      #app-container.drawer-collapsed #panel-wrapper {
+        height: 72px;
+        overflow: hidden;
+      }
+      #app-container.drawer-collapsed .nav-tabs {
+        display: none !important;
+      }
+      #app-container.drawer-collapsed .panel-content {
+        display: none !important;
+      }
+
+      .drawer-handle-zone {
+        width: 100%;
+        padding: 4px 0 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        touch-action: pan-y;
+      }
+
+      .drawer-handle {
+        width: 44px;
+        height: 5px;
+        background: rgba(255,255,255,0.32);
+        border-radius: 3px;
+        transition: background 0.2s, transform 0.2s;
+        display: block;
+      }
+
+      .drawer-handle-zone:active .drawer-handle {
+        background: var(--primary);
+        transform: scale(1.08);
+      }
+
+      .drawer-hint-text {
+        font-size: 10px;
+        color: var(--text-sub);
+        opacity: 0.7;
+        margin-top: 3px;
+        letter-spacing: 0.3px;
+      }
+
+      .layer-menu-popup {
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        border-radius: 24px 24px 0 0 !important;
+        padding: 14px 20px calc(env(safe-area-inset-bottom, 16px) + 14px) !important;
+        box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.75) !important;
+        transform: translateY(100%);
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex !important;
+        pointer-events: none;
+        visibility: hidden;
+      }
+
+      .layer-menu-popup.open {
+        transform: translateY(0);
+        pointer-events: auto;
+        visibility: visible;
+      }
+
+      .layer-menu-header-mobile {
+        display: block;
+        padding-bottom: 8px;
+        margin-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .layer-option {
+        padding: 12px 14px;
+      }
+
+      .layer-option .l-info b {
+        font-size: 14px;
+      }
+
+      .layer-option .l-info small {
+        font-size: 12px;
       }
 
       .map-floating-bar {
@@ -498,19 +635,11 @@
         padding: 10px 16px var(--safe-area-bottom);
       }
 
-      .drawer-handle {
-        width: 36px;
-        height: 4px;
-        background: rgba(255,255,255,0.25);
-        border-radius: 2px;
-        margin: 0 auto 8px;
-        display: block;
-      }
     }
 
     @media (min-width: 769px) {
-      .drawer-handle {
-        display: none;
+      .drawer-handle-zone, .drawer-handle, .drawer-hint-text {
+        display: none !important;
       }
     }
 
@@ -1098,7 +1227,7 @@
 </head>
 <body>
 
-<div id="app-container">
+<div id="app-container" class="drawer-half">
   
   <!-- 地图主视口 -->
   <div id="map-wrapper">
@@ -1120,29 +1249,11 @@
       <button class="pill-btn" id="btn-sharm" onclick="toggleSharm()">
         <span>🏝️ 沙姆沙伊赫:</span> <b id="sharm-status">已跳过</b>
       </button>
-      <!-- 底图切换下拉选单 -->
+      <!-- 底图切换按钮 -->
       <div class="layer-dropdown-wrapper">
         <button class="pill-btn" id="btn-layer-menu" onclick="toggleLayerMenu(event)">
           <span id="layer-btn-icon">🗺️</span> <b id="layer-btn-text">Esri街道 (免翻)</b> <span style="font-size:10px; opacity:0.7;">▾</span>
         </button>
-        <div class="layer-menu-popup" id="layer-menu-popup" style="display: none;">
-          <div class="layer-option active" data-layer="esriStreet" onclick="setMapLayer('esriStreet')">
-            <span class="l-icon">🗺️</span>
-            <div class="l-info"><b>Esri 全球街道</b><small>国内直连秒开 · 免翻墙</small></div>
-          </div>
-          <div class="layer-option" data-layer="esriSat" onclick="setMapLayer('esriSat')">
-            <span class="l-icon">🛰️</span>
-            <div class="l-info"><b>Esri 高清卫星</b><small>地貌清晰无水印 · 免翻墙</small></div>
-          </div>
-          <div class="layer-option" data-layer="googleHybrid" onclick="setMapLayer('googleHybrid')">
-            <span class="l-icon">🌍</span>
-            <div class="l-info"><b>Google 混合卫星</b><small>卫星+路网地名 · 需代理</small></div>
-          </div>
-          <div class="layer-option" data-layer="googleStreet" onclick="setMapLayer('googleStreet')">
-            <span class="l-icon">📍</span>
-            <div class="l-info"><b>Google 详细街图</b><small>官方权威地标 · 需代理</small></div>
-          </div>
-        </div>
       </div>
       <button class="pill-btn" id="btn-fly-all" onclick="resetMapView()">
         <span>🗺️ 全境视野</span>
@@ -1156,9 +1267,12 @@
   <!-- 信息控制面板 (PC侧栏 / 移动端底抽屉) -->
   <div id="panel-wrapper">
     <div class="panel-header">
-      <div class="drawer-handle"></div>
+      <div class="drawer-handle-zone" id="drawer-handle-zone" onclick="toggleDrawerMode()" title="点击或滑动切换全屏编辑/地图">
+        <div class="drawer-handle"></div>
+        <div class="drawer-hint-text" id="drawer-hint-text">⤢ 点击或上滑全屏编辑</div>
+      </div>
       <div class="title-row">
-        <h1>✈️ 旅游计划书</h1>
+        <h1>✈️ 旅游交互系统</h1>
         <div class="badge-budget" title="点击可直接修改总预算">
           <span style="font-size: 11px; color: #10B981; font-weight: 600; white-space: nowrap;">预算 ≤ ¥</span>
           <input type="number" id="global-budget-input" value="15000" min="0" step="500"
@@ -1777,6 +1891,34 @@
   </div>
 </div>
 
+<!-- 底图切换全局浮层 / 移动端 Action Sheet -->
+<div class="layer-menu-backdrop" id="layer-menu-backdrop" onclick="closeLayerMenu()"></div>
+<div class="layer-menu-popup" id="layer-menu-popup">
+  <div class="layer-menu-header-mobile">
+    <div class="drawer-handle" style="margin: 0 auto 10px;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:15px; font-weight:700; color:var(--text-main);">🗺️ 选择地图底图</span>
+      <button type="button" onclick="closeLayerMenu()" style="background:none; border:none; color:var(--text-sub); font-size:18px; cursor:pointer; padding:2px 6px;">✕</button>
+    </div>
+  </div>
+  <div class="layer-option active" data-layer="esriStreet" onclick="setMapLayer('esriStreet')">
+    <span class="l-icon">🗺️</span>
+    <div class="l-info"><b>Esri 全球街道</b><small>国内直连秒开 · 免翻墙</small></div>
+  </div>
+  <div class="layer-option" data-layer="esriSat" onclick="setMapLayer('esriSat')">
+    <span class="l-icon">🛰️</span>
+    <div class="l-info"><b>Esri 高清卫星</b><small>地貌清晰无水印 · 免翻墙</small></div>
+  </div>
+  <div class="layer-option" data-layer="googleHybrid" onclick="setMapLayer('googleHybrid')">
+    <span class="l-icon">🌍</span>
+    <div class="l-info"><b>Google 混合卫星</b><small>卫星+路网地名 · 需代理</small></div>
+  </div>
+  <div class="layer-option" data-layer="googleStreet" onclick="setMapLayer('googleStreet')">
+    <span class="l-icon">📍</span>
+    <div class="l-info"><b>Google 详细街图</b><small>官方权威地标 · 需代理</small></div>
+  </div>
+</div>
+
 <!-- Leaflet Map JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
@@ -1994,22 +2136,150 @@
     closeLayerMenu();
   }
 
-  // 下拉菜单显示/隐藏
+  // 底图选单显示/隐藏（自动适配 PC 按钮正下方定位与移动端原生 Action Sheet）
   function toggleLayerMenu(e) {
-    e.stopPropagation();
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     const menu = document.getElementById('layer-menu-popup');
-    menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+    const backdrop = document.getElementById('layer-menu-backdrop');
+    const btn = document.getElementById('btn-layer-menu');
+    if (!menu) return;
+
+    const isOpen = menu.classList.contains('open');
+    if (isOpen) {
+      closeLayerMenu();
+    } else {
+      if (window.innerWidth <= 768) {
+        menu.classList.add('open');
+        if (backdrop) backdrop.classList.add('open');
+      } else {
+        const rect = btn.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.top = (rect.bottom + 8) + 'px';
+        menu.style.left = Math.max(10, rect.left) + 'px';
+        menu.classList.add('open');
+        if (backdrop) backdrop.classList.add('open');
+      }
+    }
   }
 
   function closeLayerMenu() {
     const menu = document.getElementById('layer-menu-popup');
-    if (menu) menu.style.display = 'none';
+    const backdrop = document.getElementById('layer-menu-backdrop');
+    if (menu) menu.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
   }
 
   // 点击外部自动关闭底图菜单
-  window.addEventListener('click', () => {
-    closeLayerMenu();
+  window.addEventListener('click', (e) => {
+    const menu = document.getElementById('layer-menu-popup');
+    const btn = document.getElementById('btn-layer-menu');
+    if (menu && menu.classList.contains('open')) {
+      if (btn && btn.contains(e.target)) return;
+      if (menu.contains(e.target)) return;
+      closeLayerMenu();
+    }
   });
+
+  // 移动端卡片底抽屉 (Bottom Sheet) 交互与三段手势状态机
+  let currentDrawerState = 'half'; // 'full' | 'half' | 'collapsed'
+
+  function setDrawerState(state) {
+    const app = document.getElementById('app-container');
+    if (!app) return;
+    app.classList.remove('drawer-full', 'drawer-half', 'drawer-collapsed');
+    app.classList.add('drawer-' + state);
+    currentDrawerState = state;
+
+    const hint = document.getElementById('drawer-hint-text');
+    if (hint) {
+      if (state === 'full') hint.innerText = '⌵ 点击或下滑显示地图';
+      else if (state === 'collapsed') hint.innerText = '⤡ 点击或上滑展开面板';
+      else hint.innerText = '⤢ 点击或上滑全屏编辑';
+    }
+
+    setTimeout(() => {
+      if (typeof map !== 'undefined' && map) {
+        map.invalidateSize();
+      }
+    }, 360);
+  }
+
+  function toggleDrawerMode() {
+    if (currentDrawerState === 'full') {
+      setDrawerState('half');
+    } else if (currentDrawerState === 'collapsed') {
+      setDrawerState('half');
+    } else {
+      setDrawerState('full');
+    }
+  }
+
+  function initDrawerGestures() {
+    const handleZone = document.getElementById('drawer-handle-zone');
+    const header = document.querySelector('.panel-header');
+    const content = document.querySelector('.panel-content');
+
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
+    function handleTouchStart(e) {
+      if (window.innerWidth > 768) return;
+      touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
+    }
+
+    function handleTouchEnd(e) {
+      if (window.innerWidth > 768) return;
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaY = touchEndY - touchStartY;
+
+      // 向上滑动超过 35px
+      if (deltaY < -35) {
+        if (currentDrawerState === 'collapsed') {
+          setDrawerState('half');
+        } else if (currentDrawerState === 'half') {
+          setDrawerState('full');
+        }
+      }
+      // 向下滑动超过 35px
+      else if (deltaY > 35) {
+        if (currentDrawerState === 'full') {
+          setDrawerState('half');
+        } else if (currentDrawerState === 'half') {
+          setDrawerState('collapsed');
+        }
+      }
+    }
+
+    if (handleZone) {
+      handleZone.addEventListener('touchstart', handleTouchStart, { passive: true });
+      handleZone.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+    if (header) {
+      header.addEventListener('touchstart', handleTouchStart, { passive: true });
+      header.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+
+    // 在全屏状态下，如果用户把内容滚到最顶端还继续向下拉，自动收起到半屏
+    if (content) {
+      let contentTouchStartY = 0;
+      content.addEventListener('touchstart', (e) => {
+        contentTouchStartY = e.touches[0].clientY;
+      }, { passive: true });
+      content.addEventListener('touchend', (e) => {
+        if (window.innerWidth > 768) return;
+        if (currentDrawerState === 'full' && content.scrollTop <= 5) {
+          const deltaY = e.changedTouches[0].clientY - contentTouchStartY;
+          if (deltaY > 60) {
+            setDrawerState('half');
+          }
+        }
+      }, { passive: true });
+    }
+  }
 
   // 清除地图所有动态图层
   function clearMapLayers() {
@@ -4843,6 +5113,7 @@
     renderToursList();
     renderTicketsList();
     renderTransportList();
+    initDrawerGestures();
   });
 </script>
 </body>

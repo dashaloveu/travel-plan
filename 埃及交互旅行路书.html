@@ -23,6 +23,7 @@
       --text-main: #F8FAFC;
       --text-sub: #94A3B8;
       --tag-bg: rgba(217, 119, 6, 0.15);
+      --safe-area-top: env(safe-area-inset-top, 0px);
       --safe-area-bottom: env(safe-area-inset-bottom, 16px);
     }
 
@@ -456,17 +457,37 @@
       }
 
       .map-floating-bar {
-        top: 10px;
+        top: max(calc(env(safe-area-inset-top, 0px) + 8px), 52px);
         left: 10px;
         right: 10px;
         justify-content: flex-start;
         padding: 6px 8px;
         gap: 6px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .map-floating-bar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .map-mode-toggle-group {
+        flex-shrink: 0;
+      }
+
+      .mode-sub-btn {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+        white-space: nowrap;
       }
 
       .pill-btn {
         padding: 5px 8px;
         font-size: 11px;
+        flex-shrink: 0;
+        white-space: nowrap;
       }
 
       .panel-header {
